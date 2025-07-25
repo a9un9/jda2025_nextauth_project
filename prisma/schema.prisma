@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -16,9 +15,12 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  name      String?
+  name      String
   email     String   @unique
+  password  String
   otp       String?
+  otpExpiry DateTime?
+  verified  Boolean  @default(false)
   createdAt DateTime @default(now())
   @@map("users")
 }

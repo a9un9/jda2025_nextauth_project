@@ -1,44 +1,62 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
-import { AuthOptions } from "next-auth";
-import EmailProvider from "next-auth/providers/email";
-import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
+import type { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 
-export const authOptions: AuthOptions = {
-  adapter: PrismaAdapter(prisma),
+export const authOptions: NextAuthOptions = {
   providers: [
-    EmailProvider({
-      server: process.env.EMAIL_SERVER,
-      from: process.env.EMAIL_FROM,
-    }),
     CredentialsProvider({
-      name: "Credentials",
+      name: "Email & Password",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials || !credentials.email || !credentials.password) {
-          throw new Error("Invalid email or password");
-        }
-
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: credentials?.email },
         });
 
-        if (!user || !user.password) throw new Error("Invalid email or password");
+        if (!user) throw new Error("Email tidak ditemukan");
 
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) throw new Error("Invalid email or password");
+        // // ✅ Tambahkan pengecekan jika belum verifikasi
+        // if (!user.verified) {
+        //   const now = new Date();
+        //   if (!user.otpExpiry || user.otpExpiry < now) {
+        //     throw new Error("OTP sudah kadaluarsa. Silakan minta ulang OTP.");
+        //   } else {
+        //     throw new Error("Akun belum diverifikasi. Silakan cek email Anda.");
+        //   }
+        // }
+        if (!user.verified) {
+            const now = new Date();
+            const otpExpiry = user.otpExpiry ? new Date(user.otpExpiry) : null;
+
+            if ((otpExpiry && now > otpExpiry)) {
+                const error = new Error("otp_expired");
+                error.name = "Redirect";
+                throw error;
+            }
+
+            if (!user.verified) {
+                const error = new Error("not_verified");
+                error.name = "Redirect";
+                throw error;
+            }
+        }
+
+        const isMatch = await bcrypt.compare(credentials!.password, user.password);
+        if (!isMatch) throw new Error("Password salah");
 
         return user;
-      }
-    })
+      },
+    }),
   ],
-  session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: "/login",
+  session: {
+    strategy: "jwt",
   },
+  pages: {
+    signIn: "/login",         // halaman login custom
+    error: "/login",          // redirect error ke login
+  },
+  secret: process.env.NEXTAUTH_SECRET,
 };
