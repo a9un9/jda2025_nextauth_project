@@ -3,7 +3,6 @@
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function VerifyOTPPage() {
   const searchParams = useSearchParams();
@@ -69,15 +68,10 @@ export default function VerifyOTPPage() {
         </h2>
 
         {email && (
-          <>
-            <p className="text-sm text-gray-600 mb-4 text-center">
-              Silakan masukkan OTP yang dikirim ke <br />
-              <span className="font-medium text-blue-600">{email}</span>
-            </p>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              OTP berlaku selama 15 menit sejak dikirim.
-            </p>
-          </>
+          <p className="text-sm text-gray-600 mb-4 text-center">
+            Silakan masukkan OTP yang dikirim ke <br />
+            <span className="font-medium text-blue-600">{email}</span>
+          </p>
         )}
 
         <form onSubmit={handleVerify} className="space-y-4 mt-4">
@@ -96,33 +90,7 @@ export default function VerifyOTPPage() {
             disabled={isLoading}
             className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg flex justify-center items-center gap-2 transition duration-200 disabled:opacity-50"
           >
-            {isLoading ? (
-              <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-                Memverifikasi...
-              </>
-            ) : (
-              "Verifikasi"
-            )}
+            {isLoading ? "Memverifikasi..." : "Verifikasi"}
           </button>
         </form>
 
@@ -136,17 +104,6 @@ export default function VerifyOTPPage() {
           >
             {message}
           </p>
-        )}
-
-        {message.toLowerCase().includes("kadaluarsa") && (
-          <div className="text-center mt-2">
-            <Link
-              href={`/request-otp?email=${email}`}
-              className="text-blue-600 underline text-sm"
-            >
-              Klik di sini untuk kirim ulang OTP
-            </Link>
-          </div>
         )}
       </div>
     </div>
