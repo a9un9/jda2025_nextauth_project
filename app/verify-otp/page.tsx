@@ -10,9 +10,8 @@ export default function VerifyOTPPage() {
   const email = searchParams.get("email");
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (!email) {
@@ -31,29 +30,34 @@ export default function VerifyOTPPage() {
     setIsLoading(true);
     setMessage("");
 
-    const res = await fetch("/api/verify-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp }),
-    });
+    try {
+      const res = await fetch("/api/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
 
-    const data = await res.json();
-    setIsLoading(false);
+      const data = await res.json();
+      setIsLoading(false);
 
-    if (!res.ok) {
-      if (data.error?.toLowerCase().includes("kadaluarsa")) {
-        setMessage("OTP Anda sudah kadaluarsa. Silakan minta ulang.");
-        setTimeout(() => {
-          router.push(`/request-otp?email=${email}`);
-        }, 2000);
+      if (!res.ok) {
+        if (data.error?.toLowerCase().includes("kadaluarsa")) {
+          setMessage("OTP Anda sudah kadaluarsa. Silakan minta ulang.");
+          setTimeout(() => {
+            router.push(`/request-otp?email=${email}`);
+          }, 2000);
+        } else {
+          setMessage(data.error || "OTP salah");
+        }
       } else {
-        setMessage(data.error || "OTP salah");
+        setMessage("Verifikasi berhasil! Mengalihkan ke halaman login...");
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
       }
-    } else {
-      setMessage("Verifikasi berhasil! Mengalihkan ke halaman login...");
-      setTimeout(() => {
-        router.push("/login");
-      }, 1500);
+    } catch (error) {
+      setIsLoading(false);
+      setMessage("Terjadi kesalahan. Silakan coba lagi.");
     }
   };
 
@@ -88,38 +92,38 @@ export default function VerifyOTPPage() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-            <button
+          <button
             disabled={isLoading}
             className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg flex justify-center items-center gap-2 transition duration-200 disabled:opacity-50"
-            >
+          >
             {isLoading ? (
-                <>
+              <>
                 <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
                 >
-                    <circle
+                  <circle
                     className="opacity-25"
                     cx="12"
                     cy="12"
                     r="10"
                     stroke="currentColor"
                     strokeWidth="4"
-                    ></circle>
-                    <path
+                  ></circle>
+                  <path
                     className="opacity-75"
                     fill="currentColor"
                     d="M4 12a8 8 0 018-8v8H4z"
-                    ></path>
+                  ></path>
                 </svg>
                 Memverifikasi...
-                </>
+              </>
             ) : (
-                "Verifikasi"
+              "Verifikasi"
             )}
-            </button>
+          </button>
         </form>
 
         {message && (
