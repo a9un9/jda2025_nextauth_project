@@ -1,8 +1,9 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -14,19 +15,12 @@ export default function DashboardPage() {
     }
   }, [status]);
 
-  if (status === "loading") return <p>Loading...</p>;
+  if (status === "loading") return <p className="p-6">Loading...</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Selamat datang, {session?.user?.email}</h1>
-
-      {/* Tombol logout */}
-      <button
-        onClick={() => signOut({ callbackUrl: "/login" })}
-        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-      >
-        Logout
-      </button>
-    </div>
+    <DashboardLayout>
+      <h2 className="text-2xl font-bold mb-4">Selamat datang di Dashboard</h2>
+      <p>Anda login sebagai <strong>{session?.user?.email}</strong>.</p>
+    </DashboardLayout>
   );
 }
